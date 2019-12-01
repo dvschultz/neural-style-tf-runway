@@ -24,9 +24,9 @@ class NeuralStyle():
     style_weight = 1e4
     learning_rate = 1e0
     optimizer_type = 'lbfgs' #['lbfgs', 'adam']
-    max_size = options['max_size']
+    max_size = 1200
     max_iterations = 500
-    style_scale = options['style_scale']
+    style_scale = 1.0
     tv_weight = 1e-3
     temporal_weight = 2e2
     content_loss_function = 1 #[1, 2, 3]
