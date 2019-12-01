@@ -15,7 +15,7 @@ class NeuralStyle():
     global verbose,print_iterations,style_imgs_weights,device_opts,model_weights,init_img_type,content_weight,style_weight,max_iterations,learning_rate,optimizer_type,max_size,style_scale,tv_weight,temporal_weight,content_loss_function,content_layers,style_layers,pooling_type,seed,noise_ratio,original_colors,content_layer_weights,style_layer_weights,color_convert_type,color_convert_time,video
 
     verbose = True
-    device_opts = '/cpu:0' #'/gpu:0'
+    device_opts = '/gpu:0' #'/cpu:0'
     print_iterations = 50
     style_imgs_weights = [1.0]
     model_weights = 'imagenet-vgg-verydeep-19.mat'
@@ -25,7 +25,7 @@ class NeuralStyle():
     learning_rate = 1e0
     optimizer_type = 'lbfgs' #['lbfgs', 'adam']
     max_size = options['max_size']
-    max_iterations = 50
+    max_iterations = 500
     style_scale = options['style_scale']
     tv_weight = 1e-3
     temporal_weight = 2e2
