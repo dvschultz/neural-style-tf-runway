@@ -44,4 +44,4 @@ def generate(model, args):
     }
 
 if __name__ == '__main__':
-    runway.run(host='0.0.0.0', port=8000, debug=True)
+    runway.run(port=8000, debug=True)
