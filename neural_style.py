@@ -42,9 +42,9 @@ class NeuralStyle():
     self.color_convert_time = 'after' #['after', 'before']
     # video = False
 
-    self.style_layer_weights = normalize(self.style_layer_weights)
-    self.content_layer_weights = normalize(self.content_layer_weights)
-    self.style_imgs_weights = normalize(self.style_imgs_weights)
+    self.style_layer_weights = self.normalize(self.style_layer_weights)
+    self.content_layer_weights = self.normalize(self.content_layer_weights)
+    self.style_imgs_weights = self.normalize(self.style_imgs_weights)
     
 
   def run(self,content,style1,og_colors,max_iter,maxsize,scale):
@@ -55,10 +55,10 @@ class NeuralStyle():
     self.max_size = maxsize
     print('max_size: %05d' % self.max_size)
     self.style_scale = scale
-    content_img = get_content_image(content)
-    style_imgs = get_style_images(content_img,style1)
-    stylized_img =render_single_image(content_img,style_imgs)
-    finished_img = convert_to_pil(stylized_img)
+    content_img = self.get_content_image(content)
+    style_imgs = self.get_style_images(content_img,style1)
+    stylized_img = self.render_single_image(content_img,style_imgs)
+    finished_img = self.convert_to_pil(stylized_img)
     return finished_img
 
   def get_content_image(content_img):
