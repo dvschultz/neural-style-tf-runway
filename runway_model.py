@@ -27,11 +27,13 @@ input_list = {
                 description='Neural Style Transfer: Transfer the style from one image to the content of another.')
 def generate(model, args):
     print(args)
+
+    model_new = NeuralStyle(opts)
     # print('[GENERATE] Ran with content image: "{}"'.format(args['content_image']))
     # print('[GENERATE] Ran with first style image: "{}"'.format(args['style_image_1']))
     # # print('[GENERATE] Ran with second style image: "{}"'.format(args['style_image_2']))
     # Generate a PIL or Numpy image based on the input caption, and return it
-    output_image = model.run(
+    output_image = model_new.run(
         args['content_image'],
         args['style_image_1'],
         args['original_colors'],
