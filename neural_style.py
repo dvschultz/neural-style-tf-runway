@@ -12,7 +12,7 @@ from PIL import Image
 class NeuralStyle():
 
   def __init__(self, options):
-    global verbose,print_iterations,style_imgs_weights,device_opts,model_weights,init_img_type,content_weight,style_weight,max_iterations,learning_rate,optimizer_type,max_size,style_scale,tv_weight,temporal_weight,content_loss_function,content_layers,style_layers,pooling_type,seed,noise_ratio,original_colors,content_layer_weights,style_layer_weights,color_convert_type,color_convert_time,video
+    global max_iterations,max_size,style_scale,original_colors
 
     verbose = True
     device_opts = '/gpu:0' #'/cpu:0'
@@ -24,9 +24,9 @@ class NeuralStyle():
     style_weight = 1e4
     learning_rate = 1e0
     optimizer_type = 'lbfgs' #['lbfgs', 'adam']
-    # max_size = 360
-    # max_iterations = 200
-    # style_scale = 0.5
+    max_size = 360
+    max_iterations = 200
+    style_scale = 0.5
     tv_weight = 1e-3
     temporal_weight = 2e2
     content_loss_function = 1 #[1, 2, 3]
@@ -41,7 +41,7 @@ class NeuralStyle():
     # original_colors = False
     color_convert_type = 'yuv' #['yuv', 'ycrcb', 'luv', 'lab']
     color_convert_time = 'after' #['after', 'before']
-    video = False
+    # video = False
 
     style_layer_weights = normalize(style_layer_weights)
     content_layer_weights = normalize(content_layer_weights)
@@ -49,6 +49,7 @@ class NeuralStyle():
     
 
   def run(self,content,style1,og_colors,max_iter,maxsize,scale):
+    print('maxsize: ' + maxsize)
     original_colors = og_colors
     max_iterations = max_iter
     max_size = maxsize
