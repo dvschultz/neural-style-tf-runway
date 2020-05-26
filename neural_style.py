@@ -276,13 +276,14 @@ class NeuralStyle():
     # else:
     #   maybe_make_directory(args.img_output_dir)
 
-    return arguments
+    # return arguments
 
 '''
   parsing and configuration
 '''
 
 def get_content_image(content_img):
+  print('MAX SIZE:%05d' % max_size)
   # https://stackoverflow.com/questions/14134892/convert-image-from-pil-to-opencv-format
   pil_image = content_img.convert('RGB')
   open_cv_image = np.array(pil_image)
@@ -290,7 +291,7 @@ def get_content_image(content_img):
 
   img = open_cv_image.astype(np.float32)
   h, w, d = img.shape
-  mx = max_size
+  mx = self.max_size
   # resize if > max size
   if h > w and h > mx:
     w = (float(mx) / float(h)) * w
