@@ -4,12 +4,12 @@ import runway
 from runway.data_types import number, text, image,boolean
 from neural_style import NeuralStyle
 
-setup_options = {
-    'seed': number(min=0, max=10000, step=1, default=101, description='Seed for the random number generator.'),
-}
-@runway.setup(options=setup_options)
-def setup(opts):
-    model = NeuralStyle(opts)
+#setup_options = {
+#    'seed': number(min=0, max=10000, step=1, default=101, description='Seed for the random number generator.'),
+#}
+#@runway.setup(options=setup_options)
+def setup():
+    model = NeuralStyle()
     return model
 
 input_list = {
@@ -28,7 +28,7 @@ input_list = {
 def generate(model, args):
     print(args)
 
-    model_new = NeuralStyle(opts)
+    model_new = NeuralStyle()
     # print('[GENERATE] Ran with content image: "{}"'.format(args['content_image']))
     # print('[GENERATE] Ran with first style image: "{}"'.format(args['style_image_1']))
     # # print('[GENERATE] Ran with second style image: "{}"'.format(args['style_image_2']))

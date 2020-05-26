@@ -11,49 +11,50 @@ from PIL import Image
 
 class NeuralStyle():
 
-  def __init__(self, options):
-    global max_iterations,max_size,style_scale,original_colors
+  def __init__(self):
 
-    verbose = True
-    device_opts = '/gpu:0' #'/cpu:0'
-    print_iterations = 50
-    style_imgs_weights = [1.0]
-    model_weights = 'imagenet-vgg-verydeep-19.mat'
-    init_img_type = 'content' #['random', 'content', 'style']
-    content_weight = 5e0
-    style_weight = 1e4
-    learning_rate = 1e0
-    optimizer_type = 'lbfgs' #['lbfgs', 'adam']
-    max_size = 360
-    max_iterations = 200
-    style_scale = 0.5
-    tv_weight = 1e-3
-    temporal_weight = 2e2
-    content_loss_function = 1 #[1, 2, 3]
-    content_layers = ['conv4_2']
-    style_layers = ['relu1_1', 'relu2_1', 'relu3_1', 'relu4_1', 'relu5_1']
-    pooling_type = 'avg' #['avg', 'max']
-    seed = options['seed']
-    noise_ratio = 1.0
-    original_colors = False
-    content_layer_weights = [1.0]
-    style_layer_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+    self.verbose = True
+    self.device_opts = '/gpu:0' #'/cpu:0'
+    self.print_iterations = 50
+    self.style_imgs_weights = [1.0]
+    self.model_weights = 'imagenet-vgg-verydeep-19.mat'
+    self.init_img_type = 'content' #['random', 'content', 'style']
+    self.content_weight = 5e0
+    self.style_weight = 1e4
+    self.learning_rate = 1e0
+    self.optimizer_type = 'lbfgs' #['lbfgs', 'adam']
+    self.max_size = 360
+    self.max_iterations = 200
+    self.style_scale = 0.5
+    self.tv_weight = 1e-3
+    self.temporal_weight = 2e2
+    self.content_loss_function = 1 #[1, 2, 3]
+    self.content_layers = ['conv4_2']
+    self.style_layers = ['relu1_1', 'relu2_1', 'relu3_1', 'relu4_1', 'relu5_1']
+    self.pooling_type = 'avg' #['avg', 'max']
+    self.seed = 10 #options['seed']
+    self.noise_ratio = 1.0
+    self.original_colors = False
+    self.content_layer_weights = [1.0]
+    self.style_layer_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
     # original_colors = False
-    color_convert_type = 'yuv' #['yuv', 'ycrcb', 'luv', 'lab']
-    color_convert_time = 'after' #['after', 'before']
+    self.color_convert_type = 'yuv' #['yuv', 'ycrcb', 'luv', 'lab']
+    self.color_convert_time = 'after' #['after', 'before']
     # video = False
 
-    style_layer_weights = normalize(style_layer_weights)
-    content_layer_weights = normalize(content_layer_weights)
-    style_imgs_weights = normalize(style_imgs_weights)
+    self.style_layer_weights = normalize(self.style_layer_weights)
+    self.content_layer_weights = normalize(self.content_layer_weights)
+    self.style_imgs_weights = normalize(self.style_imgs_weights)
     
 
   def run(self,content,style1,og_colors,max_iter,maxsize,scale):
-    print('maxsize: ' + maxsize)
-    original_colors = og_colors
-    max_iterations = max_iter
-    max_size = maxsize
-    style_scale = scale
+    print('maxsize: %05d' %  maxsize)
+    print('max_size: %05d' % self.max_size)
+    self.original_colors = og_colors
+    self.max_iterations = max_iter
+    self.max_size = maxsize
+    print('max_size: %05d' % self.max_size)
+    self.style_scale = scale
     content_img = get_content_image(content)
     style_imgs = get_style_images(content_img,style1)
     stylized_img =render_single_image(content_img,style_imgs)
