@@ -49,14 +49,14 @@ class NeuralStyle():
     
 
   def run(self,content,style1,og_colors,max_iter,maxsize,scale):
-    original_colors = og_colors
-    max_iterations = max_iter
-    max_size = maxsize
-    style_scale = scale
-    content_img = get_content_image(content)
-    style_imgs = get_style_images(content_img,style1)
-    stylized_img =render_single_image(content_img,style_imgs)
-    finished_img = convert_to_pil(stylized_img)
+    self.original_colors = og_colors
+    self.max_iterations = max_iter
+    self.max_size = maxsize
+    self.style_scale = scale
+    content_img = get_content_image(self.content)
+    style_imgs = get_style_images(self.content_img,self.style1)
+    stylized_img =render_single_image(self.content_img,self.style_imgs)
+    finished_img = convert_to_pil(self.stylized_img)
     return finished_img
 
   def parse_args():
