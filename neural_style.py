@@ -392,7 +392,7 @@ class NeuralStyle():
     weights = np.dstack([vals.astype(np.float32)] * 3)
     return weights
 
-  def normalize(weights):
+  def normalize(self, weights):
     denom = sum(weights)
     if denom > 0.:
       return [float(i) / denom for i in weights]
