@@ -24,9 +24,9 @@ class NeuralStyle():
     style_weight = 1e4
     learning_rate = 1e0
     optimizer_type = 'lbfgs' #['lbfgs', 'adam']
-    max_size = 360
-    max_iterations = 200
-    style_scale = 0.5
+    # max_size = 360
+    # max_iterations = 200
+    # style_scale = 0.5
     tv_weight = 1e-3
     temporal_weight = 2e2
     content_loss_function = 1 #[1, 2, 3]
@@ -38,7 +38,7 @@ class NeuralStyle():
     original_colors = False
     content_layer_weights = [1.0]
     style_layer_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
-    original_colors = False
+    # original_colors = False
     color_convert_type = 'yuv' #['yuv', 'ycrcb', 'luv', 'lab']
     color_convert_time = 'after' #['after', 'before']
     video = False
@@ -49,10 +49,10 @@ class NeuralStyle():
     
 
   def run(self,content,style1,og_colors,max_iter,maxsize,scale):
-    self.original_colors = og_colors
-    self.max_iterations = max_iter
-    self.max_size = maxsize
-    self.style_scale = scale
+    original_colors = og_colors
+    max_iterations = max_iter
+    max_size = maxsize
+    style_scale = scale
     content_img = get_content_image(content)
     style_imgs = get_style_images(content_img,style1)
     stylized_img =render_single_image(content_img,style_imgs)
@@ -291,7 +291,7 @@ def get_content_image(content_img):
 
   img = open_cv_image.astype(np.float32)
   h, w, d = img.shape
-  mx = self.max_size
+  mx = max_size
   # resize if > max size
   if h > w and h > mx:
     w = (float(mx) / float(h)) * w
