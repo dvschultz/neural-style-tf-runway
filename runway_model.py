@@ -30,7 +30,7 @@ def generate(model, args):
 
     model_new = NeuralStyle()
     if(args['style_only']==True):
-        self.content_weight = 0
+        model_new.content_weight = 0
     # print('[GENERATE] Ran with content image: "{}"'.format(args['content_image']))
     # print('[GENERATE] Ran with first style image: "{}"'.format(args['style_image_1']))
     # # print('[GENERATE] Ran with second style image: "{}"'.format(args['style_image_2']))
