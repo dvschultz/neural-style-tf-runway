@@ -37,7 +37,7 @@ class NeuralStyle():
     self.original_colors = False
     self.content_layer_weights = [1.0]
     self.style_layer_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
-    # original_colors = False
+    self.original_colors = False
     self.color_convert_type = 'yuv' #['yuv', 'ycrcb', 'luv', 'lab']
     self.color_convert_time = 'after' #['after', 'before']
     # video = False
@@ -47,22 +47,22 @@ class NeuralStyle():
     self.style_imgs_weights = self.normalize(self.style_imgs_weights)
     
 
-  def run(self,content,style1,og_colors,max_iter,maxsize,scale):
-    #print('maxsize: %05d' %  maxsize)
-    #print('max_size: %05d' % self.max_size)
+  def run(self,content,style1,og_colors,max_iter,scale):
+    
+    content_img = self.get_content_image(content)
+    height,width = content_img.size
+    self.max_size = max(height,width)
+
+    self.style_scale = scale
     self.original_colors = og_colors
     self.max_iterations = max_iter
-    self.max_size = maxsize
-    print('max_size: %05d' % self.max_size)
-    self.style_scale = scale
-    content_img = self.get_content_image(content)
+    
     style_imgs = self.get_style_images(content_img,style1)
     stylized_img = self.render_single_image(content_img,style_imgs)
     finished_img = self.convert_to_pil(stylized_img)
     return finished_img
 
   def get_content_image(self,content_img):
-    print('MAX SIZE:%05d' % self.max_size)
     # https://stackoverflow.com/questions/14134892/convert-image-from-pil-to-opencv-format
     pil_image = content_img.convert('RGB')
     open_cv_image = np.array(pil_image)
@@ -450,8 +450,8 @@ class NeuralStyle():
       output_img = sess.run(net['input'])
       return output_img
       
-      # if args.original_colors:
-      #   output_img = convert_to_original_colors(np.copy(content_img), output_img)
+      if self.original_colors:
+        output_img = self.convert_to_original_colors(np.copy(content_img), output_img)
 
       # if args.video:
       #   write_video_output(frame, output_img)
@@ -516,18 +516,18 @@ class NeuralStyle():
     return forward_weights #, backward_weights
 
   def convert_to_original_colors(self,content_img, stylized_img):
-    content_img  = postprocess(content_img)
-    stylized_img = postprocess(stylized_img)
-    if color_convert_type == 'yuv':
+    content_img  = self.postprocess(content_img)
+    stylized_img = self.postprocess(stylized_img)
+    if self.color_convert_type == 'yuv':
       cvt_type = cv2.COLOR_BGR2YUV
       inv_cvt_type = cv2.COLOR_YUV2BGR
-    elif color_convert_type == 'ycrcb':
+    elif self.color_convert_type == 'ycrcb':
       cvt_type = cv2.COLOR_BGR2YCR_CB
       inv_cvt_type = cv2.COLOR_YCR_CB2BGR
-    elif color_convert_type == 'luv':
+    elif self.color_convert_type == 'luv':
       cvt_type = cv2.COLOR_BGR2LUV
       inv_cvt_type = cv2.COLOR_LUV2BGR
-    elif color_convert_type == 'lab':
+    elif self.color_convert_type == 'lab':
       cvt_type = cv2.COLOR_BGR2LAB
       inv_cvt_type = cv2.COLOR_LAB2BGR
     content_cvt = cv2.cvtColor(content_img, cvt_type)
@@ -536,7 +536,7 @@ class NeuralStyle():
     _, c2, c3 = cv2.split(content_cvt)
     merged = cv2.merge((c1, c2, c3))
     dst = cv2.cvtColor(merged, inv_cvt_type).astype(np.float32)
-    dst = preprocess(dst)
+    dst = self.preprocess(dst)
     return dst
 
   def render_single_image(self,content_img,style_imgs):

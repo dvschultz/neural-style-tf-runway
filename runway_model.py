@@ -17,7 +17,6 @@ input_list = {
     'style_image_1': image,
     'original_colors': boolean(default=False),
     'max_iterations': number(min=50, max=1500, step=50, default=500, description='Iterations'),
-    'max_size': number(min=256, max=1600, step=16, default=1200, description='Maximum output size.'),
     'style_scale': number(min=0.1, max=2.0, step=.05, default=1.0, description='Scale of style images.'),
 }
 
@@ -38,7 +37,6 @@ def generate(model, args):
         args['style_image_1'],
         args['original_colors'],
         args['max_iterations'],
-        args['max_size'],
         args['style_scale'],
         )
     return {
