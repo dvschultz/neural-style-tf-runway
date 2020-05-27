@@ -49,14 +49,16 @@ class NeuralStyle():
 
   def run(self,content,style1,og_colors,max_iter,scale):
     
-    content_img = self.get_content_image(content)
+    content_img = content.convert('RGB')
     height,width = content_img.size
     self.max_size = max(height,width)
+    content_img = self.get_content_image(content)
 
     self.style_scale = scale
     self.original_colors = og_colors
     self.max_iterations = max_iter
     
+    print('original colors: ' + str(self.original_colors))
     style_imgs = self.get_style_images(content_img,style1)
     stylized_img = self.render_single_image(content_img,style_imgs)
     finished_img = self.convert_to_pil(stylized_img)
@@ -448,10 +450,11 @@ class NeuralStyle():
         self.minimize_with_lbfgs(sess, net, optimizer, init_img)
       
       output_img = sess.run(net['input'])
-      return output_img
       
       if self.original_colors:
         output_img = self.convert_to_original_colors(np.copy(content_img), output_img)
+
+      return output_img
 
       # if args.video:
       #   write_video_output(frame, output_img)
@@ -520,16 +523,16 @@ class NeuralStyle():
     stylized_img = self.postprocess(stylized_img)
     if self.color_convert_type == 'yuv':
       cvt_type = cv2.COLOR_BGR2YUV
-      inv_cvt_type = cv2.COLOR_YUV2BGR
+      inv_cvt_type = cv2.COLOR_YUV2RGB
     elif self.color_convert_type == 'ycrcb':
       cvt_type = cv2.COLOR_BGR2YCR_CB
-      inv_cvt_type = cv2.COLOR_YCR_CB2BGR
+      inv_cvt_type = cv2.COLOR_YCR_CB2RGB
     elif self.color_convert_type == 'luv':
       cvt_type = cv2.COLOR_BGR2LUV
-      inv_cvt_type = cv2.COLOR_LUV2BGR
+      inv_cvt_type = cv2.COLOR_LUV2RGB
     elif self.color_convert_type == 'lab':
       cvt_type = cv2.COLOR_BGR2LAB
-      inv_cvt_type = cv2.COLOR_LAB2BGR
+      inv_cvt_type = cv2.COLOR_LAB2RGB
     content_cvt = cv2.cvtColor(content_img, cvt_type)
     stylized_cvt = cv2.cvtColor(stylized_img, cvt_type)
     c1, _, _ = cv2.split(stylized_cvt)
