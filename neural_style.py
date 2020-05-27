@@ -61,7 +61,7 @@ class NeuralStyle():
     finished_img = self.convert_to_pil(stylized_img)
     return finished_img
 
-  def get_content_image(content_img):
+  def get_content_image(self,content_img):
     print('MAX SIZE:%05d' % max_size)
     # https://stackoverflow.com/questions/14134892/convert-image-from-pil-to-opencv-format
     pil_image = content_img.convert('RGB')
@@ -81,7 +81,7 @@ class NeuralStyle():
     img = preprocess(img)
     return img
 
-  def get_style_images(content_img,style_img):
+  def get_style_images(self,content_img,style_img):
     _, ch, cw, cd = content_img.shape
 
     pil_image = style_img.convert('RGB')
@@ -124,12 +124,12 @@ class NeuralStyle():
     return style_imgs
     # return img
 
-  def convert_to_pil(img):
+  def convert_to_pil(self,img):
     post = postprocess(img)
     return Image.fromarray(post)
 
 
-  def build_model(input_img):
+  def build_model(self,input_img):
     if verbose: print('\nBUILDING VGG-19 NETWORK')
     net = {}
     _, h, w, d     = input_img.shape
@@ -205,20 +205,20 @@ class NeuralStyle():
 
     return net
 
-  def conv_layer(layer_name, layer_input, W):
+  def conv_layer(self,layer_name, layer_input, W):
     conv = tf.nn.conv2d(layer_input, W, strides=[1, 1, 1, 1], padding='SAME')
     if verbose: print('--{} | shape={} | weights_shape={}'.format(layer_name, 
       conv.get_shape(), W.get_shape()))
     return conv
 
-  def relu_layer(layer_name, layer_input, b):
+  def relu_layer(self,layer_name, layer_input, b):
     relu = tf.nn.relu(layer_input + b)
     if verbose: 
       print('--{} | shape={} | bias_shape={}'.format(layer_name, relu.get_shape(), 
         b.get_shape()))
     return relu
 
-  def pool_layer(layer_name, layer_input):
+  def pool_layer(self,layer_name, layer_input):
     if pooling_type == 'avg':
       pool = tf.nn.avg_pool(layer_input, ksize=[1, 2, 2, 1], 
         strides=[1, 2, 2, 1], padding='SAME')
@@ -229,17 +229,17 @@ class NeuralStyle():
       print('--{}   | shape={}'.format(layer_name, pool.get_shape()))
     return pool
 
-  def get_weights(vgg_layers, i):
+  def get_weights(self,vgg_layers, i):
     weights = vgg_layers[i][0][0][2][0][0]
     W = tf.constant(weights)
     return W
 
-  def get_bias(vgg_layers, i):
+  def get_bias(self,vgg_layers, i):
     bias = vgg_layers[i][0][0][2][0][1]
     b = tf.constant(np.reshape(bias, (bias.size)))
     return b
 
-  def content_layer_loss(p, x):
+  def content_layer_loss(self,p, x):
     _, h, w, d = p.get_shape()
     M = h.value * w.value
     N = d.value
@@ -252,7 +252,7 @@ class NeuralStyle():
     loss = K * tf.reduce_sum(tf.pow((x - p), 2))
     return loss
 
-  def style_layer_loss(a, x):
+  def style_layer_loss(self,a, x):
     _, h, w, d = a.get_shape()
     M = h.value * w.value
     N = d.value
@@ -261,12 +261,12 @@ class NeuralStyle():
     loss = (1./(4 * N**2 * M**2)) * tf.reduce_sum(tf.pow((G - A), 2))
     return loss
 
-  def gram_matrix(x, area, depth):
+  def gram_matrix(self,x, area, depth):
     F = tf.reshape(x, (area, depth))
     G = tf.matmul(tf.transpose(F), F)
     return G
 
-  def mask_style_layer(a, x, mask_img):
+  def mask_style_layer(self,a, x, mask_img):
     _, h, w, d = a.get_shape()
     mask = get_mask_image(mask_img, w.value, h.value)
     mask = tf.convert_to_tensor(mask)
@@ -280,7 +280,7 @@ class NeuralStyle():
     x = tf.multiply(x, mask)
     return a, x
 
-  def sum_masked_style_losses(sess, net, style_imgs):
+  def sum_masked_style_losses(self,sess, net, style_imgs):
     total_style_loss = 0.
     weights = style_imgs_weights
     # masks = args.style_mask_imgs
@@ -298,7 +298,7 @@ class NeuralStyle():
     total_style_loss /= float(len(style_imgs))
     return total_style_loss
 
-  def sum_style_losses(sess, net, style_imgs):
+  def sum_style_losses(self,sess, net, style_imgs):
     total_style_loss = 0.
     weights = style_imgs_weights
     for img, img_weight in zip(style_imgs, weights):
@@ -314,7 +314,7 @@ class NeuralStyle():
     total_style_loss /= float(len(style_imgs))
     return total_style_loss
 
-  def sum_content_losses(sess, net, content_img):
+  def sum_content_losses(self,sess, net, content_img):
     sess.run(net['input'].assign(content_img))
     content_loss = 0.
     for layer, weight in zip(content_layers, content_layer_weights):
@@ -325,14 +325,14 @@ class NeuralStyle():
     content_loss /= float(len(content_layers))
     return content_loss
 
-  def temporal_loss(x, w, c):
+  def temporal_loss(self,x, w, c):
     c = c[np.newaxis,:,:,:]
     D = float(x.size)
     loss = (1. / D) * tf.reduce_sum(c * tf.nn.l2_loss(x - w))
     loss = tf.cast(loss, tf.float32)
     return loss
 
-  def get_longterm_weights(i, j):
+  def get_longterm_weights(self,i, j):
     c_sum = 0.
     for k in range(prev_frame_indices):
       if i - k > i - j:
@@ -341,7 +341,7 @@ class NeuralStyle():
     c_max = tf.maximum(c - c_sum, 0.)
     return c_max
 
-  def sum_longterm_temporal_losses(sess, net, frame, input_img):
+  def sum_longterm_temporal_losses(self,sess, net, frame, input_img):
     x = sess.run(net['input'].assign(input_img))
     loss = 0.
     for j in range(prev_frame_indices):
@@ -351,7 +351,7 @@ class NeuralStyle():
       loss += temporal_loss(x, w, c)
     return loss
 
-  def sum_shortterm_temporal_losses(sess, net, frame, input_img):
+  def sum_shortterm_temporal_losses(self,sess, net, frame, input_img):
     x = sess.run(net['input'].assign(input_img))
     prev_frame = frame - 1
     w = get_prev_warped_frame(frame)
@@ -359,7 +359,7 @@ class NeuralStyle():
     loss = temporal_loss(x, w, c)
     return loss
 
-  def preprocess(img):
+  def preprocess(self,img):
     imgpre = np.copy(img)
     # bgr to rgb
     imgpre = imgpre[...,::-1]
@@ -368,7 +368,7 @@ class NeuralStyle():
     imgpre -= np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
     return imgpre
 
-  def postprocess(img):
+  def postprocess(self,img):
     imgpost = np.copy(img)
     imgpost += np.array([123.68, 116.779, 103.939]).reshape((1,1,1,3))
     # shape (1, h, w, d) to (h, w, d)
@@ -378,7 +378,7 @@ class NeuralStyle():
     # imgpost = imgpost[...,::-1]
     return imgpost
 
-  def read_weights_file(path):
+  def read_weights_file(self,path):
     lines = open(path).readlines()
     header = list(map(int, lines[0].split(' ')))
     w = header[0]
@@ -398,18 +398,18 @@ class NeuralStyle():
       return [float(i) / denom for i in weights]
     else: return [0.] * len(weights)
 
-  def maybe_make_directory(dir_path):
+  def maybe_make_directory(self,dir_path):
     if not os.path.exists(dir_path):  
       os.makedirs(dir_path)
 
-  def check_image(img, path):
+  def check_image(self,img, path):
     if img is None:
       raise OSError(errno.ENOENT, "No such file", path)
 
   '''
     rendering -- where the magic happens
   '''
-  def stylize(content_img, style_imgs, init_img, frame=None):
+  def stylize(self,content_img, style_imgs, init_img, frame=None):
     with tf.device(device_opts), tf.Session() as sess:
       # setup network
       net = build_model(content_img)
@@ -458,14 +458,14 @@ class NeuralStyle():
       # else:
       #   write_image_output(output_img, content_img, style_imgs, init_img)
 
-  def minimize_with_lbfgs(sess, net, optimizer, init_img):
+  def minimize_with_lbfgs(self,sess, net, optimizer, init_img):
     if verbose: print('\nMINIMIZING LOSS USING: L-BFGS OPTIMIZER')
     init_op = tf.global_variables_initializer()
     sess.run(init_op)
     sess.run(net['input'].assign(init_img))
     optimizer.minimize(sess)
 
-  def minimize_with_adam(sess, net, optimizer, init_img, loss):
+  def minimize_with_adam(self,sess, net, optimizer, init_img, loss):
     if verbose: print('\nMINIMIZING LOSS USING: ADAM OPTIMIZER')
     train_op = optimizer.minimize(loss)
     init_op = tf.global_variables_initializer()
@@ -479,7 +479,7 @@ class NeuralStyle():
         print("At iterate {}\tf=  {}".format(iterations, curr_loss))
       iterations += 1
 
-  def get_optimizer(loss):
+  def get_optimizer(self,loss):
     print_iterations = 50 if verbose else 0
     if optimizer_type == 'lbfgs':
       optimizer = tf.contrib.opt.ScipyOptimizerInterface(
@@ -490,7 +490,7 @@ class NeuralStyle():
       optimizer = tf.train.AdamOptimizer(learning_rate)
     return optimizer
 
-  def get_init_image(init_type, content_img, style_imgs, frame=None):
+  def get_init_image(self,init_type, content_img, style_imgs, frame=None):
     if init_type == 'content':
       return content_img
     elif init_type == 'style':
@@ -506,7 +506,7 @@ class NeuralStyle():
       init_img = get_prev_warped_frame(frame)
       return init_img
 
-  def get_content_weights(frame, prev_frame):
+  def get_content_weights(self,frame, prev_frame):
     forward_fn = content_weights_frmt.format(str(prev_frame), str(frame))
     backward_fn = content_weights_frmt.format(str(frame), str(prev_frame))
     forward_path = os.path.join(video_input_dir, forward_fn)
@@ -515,7 +515,7 @@ class NeuralStyle():
     backward_weights = read_weights_file(backward_path)
     return forward_weights #, backward_weights
 
-  def convert_to_original_colors(content_img, stylized_img):
+  def convert_to_original_colors(self,content_img, stylized_img):
     content_img  = postprocess(content_img)
     stylized_img = postprocess(stylized_img)
     if color_convert_type == 'yuv':
@@ -539,7 +539,7 @@ class NeuralStyle():
     dst = preprocess(dst)
     return dst
 
-  def render_single_image(content_img,style_imgs):
+  def render_single_image(self,content_img,style_imgs):
     with tf.Graph().as_default():
       print('\n---- RENDERING SINGLE IMAGE ----\n')
       init_img = get_init_image(init_img_type, content_img, style_imgs)
