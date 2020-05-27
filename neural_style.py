@@ -48,8 +48,8 @@ class NeuralStyle():
     
 
   def run(self,content,style1,og_colors,max_iter,maxsize,scale):
-    print('maxsize: %05d' %  maxsize)
-    print('max_size: %05d' % self.max_size)
+    #print('maxsize: %05d' %  maxsize)
+    #print('max_size: %05d' % self.max_size)
     self.original_colors = og_colors
     self.max_iterations = max_iter
     self.max_size = maxsize
@@ -62,7 +62,7 @@ class NeuralStyle():
     return finished_img
 
   def get_content_image(self,content_img):
-    print('MAX SIZE:%05d' % max_size)
+    print('MAX SIZE:%05d' % self.max_size)
     # https://stackoverflow.com/questions/14134892/convert-image-from-pil-to-opencv-format
     pil_image = content_img.convert('RGB')
     open_cv_image = np.array(pil_image)
@@ -70,7 +70,7 @@ class NeuralStyle():
 
     img = open_cv_image.astype(np.float32)
     h, w, d = img.shape
-    mx = max_size
+    mx = self.max_size
     # resize if > max size
     if h > w and h > mx:
       w = (float(mx) / float(h)) * w
@@ -78,7 +78,7 @@ class NeuralStyle():
     if w > mx:
       h = (float(mx) / float(w)) * h
       img = cv2.resize(img, dsize=(mx, int(h)), interpolation=cv2.INTER_AREA)
-    img = preprocess(img)
+    img = self.preprocess(img)
     return img
 
   def get_style_images(self,content_img,style_img):
@@ -88,7 +88,7 @@ class NeuralStyle():
     open_cv_image = np.array(pil_image)
     open_cv_image = open_cv_image[:, :, ::-1].copy()
 
-    mx = max_size
+    mx = self.max_size
     style_imgs = []
     # for style_fn in args.style_imgs:
     # path = os.path.join(args.style_imgs_dir, style_fn)
@@ -99,7 +99,7 @@ class NeuralStyle():
     sh, sw, sd = img.shape
 
     # use scale args to resize and tile image
-    scaled_img = cv2.resize(img, dsize=(int(sw*style_scale), int(sh*style_scale)), interpolation=cv2.INTER_AREA)
+    scaled_img = cv2.resize(img, dsize=(int(sw*self.style_scale), int(sh*self.style_scale)), interpolation=cv2.INTER_AREA)
     ssh, ssw, ssd = scaled_img.shape
     
     if ssh > ch and ssw > cw:
@@ -119,113 +119,113 @@ class NeuralStyle():
     else:
       img = cv2.copyMakeBorder(scaled_img,0,(ch-ssh),0,(cw-ssw),cv2.BORDER_REFLECT)
 
-    img = preprocess(img)
+    img = self.preprocess(img)
     style_imgs.append(img)
     return style_imgs
     # return img
 
   def convert_to_pil(self,img):
-    post = postprocess(img)
+    post = self.postprocess(img)
     return Image.fromarray(post)
 
 
   def build_model(self,input_img):
-    if verbose: print('\nBUILDING VGG-19 NETWORK')
+    if self.verbose: print('\nBUILDING VGG-19 NETWORK')
     net = {}
     _, h, w, d     = input_img.shape
     
-    if verbose: print('loading model weights...')
-    vgg_rawnet     = scipy.io.loadmat(model_weights)
+    if self.verbose: print('loading model weights...')
+    vgg_rawnet     = scipy.io.loadmat(self.model_weights)
     vgg_layers     = vgg_rawnet['layers'][0]
-    if verbose: print('constructing layers...')
+    if self.verbose: print('constructing layers...')
     net['input']   = tf.Variable(np.zeros((1, h, w, d), dtype=np.float32))
 
-    if verbose: print('LAYER GROUP 1')
-    net['conv1_1'] = conv_layer('conv1_1', net['input'], W=get_weights(vgg_layers, 0))
-    net['relu1_1'] = relu_layer('relu1_1', net['conv1_1'], b=get_bias(vgg_layers, 0))
+    if self.verbose: print('LAYER GROUP 1')
+    net['conv1_1'] = self.conv_layer('conv1_1', net['input'], W=self.get_weights(vgg_layers, 0))
+    net['relu1_1'] = self.relu_layer('relu1_1', net['conv1_1'], b=self.get_bias(vgg_layers, 0))
 
-    net['conv1_2'] = conv_layer('conv1_2', net['relu1_1'], W=get_weights(vgg_layers, 2))
-    net['relu1_2'] = relu_layer('relu1_2', net['conv1_2'], b=get_bias(vgg_layers, 2))
+    net['conv1_2'] = self.conv_layer('conv1_2', net['relu1_1'], W=self.get_weights(vgg_layers, 2))
+    net['relu1_2'] = self.relu_layer('relu1_2', net['conv1_2'], b=self.get_bias(vgg_layers, 2))
     
-    net['pool1']   = pool_layer('pool1', net['relu1_2'])
+    net['pool1']   = self.pool_layer('pool1', net['relu1_2'])
 
-    if verbose: print('LAYER GROUP 2')  
-    net['conv2_1'] = conv_layer('conv2_1', net['pool1'], W=get_weights(vgg_layers, 5))
-    net['relu2_1'] = relu_layer('relu2_1', net['conv2_1'], b=get_bias(vgg_layers, 5))
+    if self.verbose: print('LAYER GROUP 2')  
+    net['conv2_1'] = self.conv_layer('conv2_1', net['pool1'], W=self.get_weights(vgg_layers, 5))
+    net['relu2_1'] = self.relu_layer('relu2_1', net['conv2_1'], b=self.get_bias(vgg_layers, 5))
     
-    net['conv2_2'] = conv_layer('conv2_2', net['relu2_1'], W=get_weights(vgg_layers, 7))
-    net['relu2_2'] = relu_layer('relu2_2', net['conv2_2'], b=get_bias(vgg_layers, 7))
+    net['conv2_2'] = self.conv_layer('conv2_2', net['relu2_1'], W=self.get_weights(vgg_layers, 7))
+    net['relu2_2'] = self.relu_layer('relu2_2', net['conv2_2'], b=self.get_bias(vgg_layers, 7))
     
-    net['pool2']   = pool_layer('pool2', net['relu2_2'])
+    net['pool2']   = self.pool_layer('pool2', net['relu2_2'])
     
-    if verbose: print('LAYER GROUP 3')
-    net['conv3_1'] = conv_layer('conv3_1', net['pool2'], W=get_weights(vgg_layers, 10))
-    net['relu3_1'] = relu_layer('relu3_1', net['conv3_1'], b=get_bias(vgg_layers, 10))
+    if self.verbose: print('LAYER GROUP 3')
+    net['conv3_1'] = self.conv_layer('conv3_1', net['pool2'], W=self.get_weights(vgg_layers, 10))
+    net['relu3_1'] = self.relu_layer('relu3_1', net['conv3_1'], b=self.get_bias(vgg_layers, 10))
 
-    net['conv3_2'] = conv_layer('conv3_2', net['relu3_1'], W=get_weights(vgg_layers, 12))
-    net['relu3_2'] = relu_layer('relu3_2', net['conv3_2'], b=get_bias(vgg_layers, 12))
+    net['conv3_2'] = self.conv_layer('conv3_2', net['relu3_1'], W=self.get_weights(vgg_layers, 12))
+    net['relu3_2'] = self.relu_layer('relu3_2', net['conv3_2'], b=self.get_bias(vgg_layers, 12))
 
-    net['conv3_3'] = conv_layer('conv3_3', net['relu3_2'], W=get_weights(vgg_layers, 14))
-    net['relu3_3'] = relu_layer('relu3_3', net['conv3_3'], b=get_bias(vgg_layers, 14))
+    net['conv3_3'] = self.conv_layer('conv3_3', net['relu3_2'], W=self.get_weights(vgg_layers, 14))
+    net['relu3_3'] = self.relu_layer('relu3_3', net['conv3_3'], b=self.get_bias(vgg_layers, 14))
 
-    net['conv3_4'] = conv_layer('conv3_4', net['relu3_3'], W=get_weights(vgg_layers, 16))
-    net['relu3_4'] = relu_layer('relu3_4', net['conv3_4'], b=get_bias(vgg_layers, 16))
+    net['conv3_4'] = self.conv_layer('conv3_4', net['relu3_3'], W=self.get_weights(vgg_layers, 16))
+    net['relu3_4'] = self.relu_layer('relu3_4', net['conv3_4'], b=self.get_bias(vgg_layers, 16))
 
-    net['pool3']   = pool_layer('pool3', net['relu3_4'])
+    net['pool3']   = self.pool_layer('pool3', net['relu3_4'])
 
-    if verbose: print('LAYER GROUP 4')
-    net['conv4_1'] = conv_layer('conv4_1', net['pool3'], W=get_weights(vgg_layers, 19))
-    net['relu4_1'] = relu_layer('relu4_1', net['conv4_1'], b=get_bias(vgg_layers, 19))
+    if self.verbose: print('LAYER GROUP 4')
+    net['conv4_1'] = self.conv_layer('conv4_1', net['pool3'], W=self.get_weights(vgg_layers, 19))
+    net['relu4_1'] = self.relu_layer('relu4_1', net['conv4_1'], b=self.get_bias(vgg_layers, 19))
 
-    net['conv4_2'] = conv_layer('conv4_2', net['relu4_1'], W=get_weights(vgg_layers, 21))
-    net['relu4_2'] = relu_layer('relu4_2', net['conv4_2'], b=get_bias(vgg_layers, 21))
+    net['conv4_2'] = self.conv_layer('conv4_2', net['relu4_1'], W=self.get_weights(vgg_layers, 21))
+    net['relu4_2'] = self.relu_layer('relu4_2', net['conv4_2'], b=self.get_bias(vgg_layers, 21))
 
-    net['conv4_3'] = conv_layer('conv4_3', net['relu4_2'], W=get_weights(vgg_layers, 23))
-    net['relu4_3'] = relu_layer('relu4_3', net['conv4_3'], b=get_bias(vgg_layers, 23))
+    net['conv4_3'] = self.conv_layer('conv4_3', net['relu4_2'], W=self.get_weights(vgg_layers, 23))
+    net['relu4_3'] = self.relu_layer('relu4_3', net['conv4_3'], b=self.get_bias(vgg_layers, 23))
 
-    net['conv4_4'] = conv_layer('conv4_4', net['relu4_3'], W=get_weights(vgg_layers, 25))
-    net['relu4_4'] = relu_layer('relu4_4', net['conv4_4'], b=get_bias(vgg_layers, 25))
+    net['conv4_4'] = self.conv_layer('conv4_4', net['relu4_3'], W=self.get_weights(vgg_layers, 25))
+    net['relu4_4'] = self.relu_layer('relu4_4', net['conv4_4'], b=self.get_bias(vgg_layers, 25))
 
-    net['pool4']   = pool_layer('pool4', net['relu4_4'])
+    net['pool4']   = self.pool_layer('pool4', net['relu4_4'])
 
-    if verbose: print('LAYER GROUP 5')
-    net['conv5_1'] = conv_layer('conv5_1', net['pool4'], W=get_weights(vgg_layers, 28))
-    net['relu5_1'] = relu_layer('relu5_1', net['conv5_1'], b=get_bias(vgg_layers, 28))
+    if self.verbose: print('LAYER GROUP 5')
+    net['conv5_1'] = self.conv_layer('conv5_1', net['pool4'], W=self.get_weights(vgg_layers, 28))
+    net['relu5_1'] = self.relu_layer('relu5_1', net['conv5_1'], b=self.get_bias(vgg_layers, 28))
 
-    net['conv5_2'] = conv_layer('conv5_2', net['relu5_1'], W=get_weights(vgg_layers, 30))
-    net['relu5_2'] = relu_layer('relu5_2', net['conv5_2'], b=get_bias(vgg_layers, 30))
+    net['conv5_2'] = self.conv_layer('conv5_2', net['relu5_1'], W=self.get_weights(vgg_layers, 30))
+    net['relu5_2'] = self.relu_layer('relu5_2', net['conv5_2'], b=self.get_bias(vgg_layers, 30))
 
-    net['conv5_3'] = conv_layer('conv5_3', net['relu5_2'], W=get_weights(vgg_layers, 32))
-    net['relu5_3'] = relu_layer('relu5_3', net['conv5_3'], b=get_bias(vgg_layers, 32))
+    net['conv5_3'] = self.conv_layer('conv5_3', net['relu5_2'], W=self.get_weights(vgg_layers, 32))
+    net['relu5_3'] = self.relu_layer('relu5_3', net['conv5_3'], b=self.get_bias(vgg_layers, 32))
 
-    net['conv5_4'] = conv_layer('conv5_4', net['relu5_3'], W=get_weights(vgg_layers, 34))
-    net['relu5_4'] = relu_layer('relu5_4', net['conv5_4'], b=get_bias(vgg_layers, 34))
+    net['conv5_4'] = self.conv_layer('conv5_4', net['relu5_3'], W=self.get_weights(vgg_layers, 34))
+    net['relu5_4'] = self.relu_layer('relu5_4', net['conv5_4'], b=self.get_bias(vgg_layers, 34))
 
-    net['pool5']   = pool_layer('pool5', net['relu5_4'])
+    net['pool5']   = self.pool_layer('pool5', net['relu5_4'])
 
     return net
 
   def conv_layer(self,layer_name, layer_input, W):
     conv = tf.nn.conv2d(layer_input, W, strides=[1, 1, 1, 1], padding='SAME')
-    if verbose: print('--{} | shape={} | weights_shape={}'.format(layer_name, 
+    if self.verbose: print('--{} | shape={} | weights_shape={}'.format(layer_name, 
       conv.get_shape(), W.get_shape()))
     return conv
 
   def relu_layer(self,layer_name, layer_input, b):
     relu = tf.nn.relu(layer_input + b)
-    if verbose: 
+    if self.verbose: 
       print('--{} | shape={} | bias_shape={}'.format(layer_name, relu.get_shape(), 
         b.get_shape()))
     return relu
 
   def pool_layer(self,layer_name, layer_input):
-    if pooling_type == 'avg':
+    if self.pooling_type == 'avg':
       pool = tf.nn.avg_pool(layer_input, ksize=[1, 2, 2, 1], 
         strides=[1, 2, 2, 1], padding='SAME')
-    elif pooling_type == 'max':
+    elif self.pooling_type == 'max':
       pool = tf.nn.max_pool(layer_input, ksize=[1, 2, 2, 1], 
         strides=[1, 2, 2, 1], padding='SAME')
-    if verbose: 
+    if self.verbose: 
       print('--{}   | shape={}'.format(layer_name, pool.get_shape()))
     return pool
 
@@ -243,11 +243,11 @@ class NeuralStyle():
     _, h, w, d = p.get_shape()
     M = h.value * w.value
     N = d.value
-    if content_loss_function   == 1:
+    if self.content_loss_function   == 1:
       K = 1. / (2. * N**0.5 * M**0.5)
-    elif content_loss_function == 2:
+    elif self.content_loss_function == 2:
       K = 1. / (N * M)
-    elif content_loss_function == 3:  
+    elif self.content_loss_function == 3:  
       K = 1. / 2.
     loss = K * tf.reduce_sum(tf.pow((x - p), 2))
     return loss
@@ -256,8 +256,8 @@ class NeuralStyle():
     _, h, w, d = a.get_shape()
     M = h.value * w.value
     N = d.value
-    A = gram_matrix(a, M, N)
-    G = gram_matrix(x, M, N)
+    A = self.gram_matrix(a, M, N)
+    G = self.gram_matrix(x, M, N)
     loss = (1./(4 * N**2 * M**2)) * tf.reduce_sum(tf.pow((G - A), 2))
     return loss
 
@@ -300,16 +300,16 @@ class NeuralStyle():
 
   def sum_style_losses(self,sess, net, style_imgs):
     total_style_loss = 0.
-    weights = style_imgs_weights
+    weights = self.style_imgs_weights
     for img, img_weight in zip(style_imgs, weights):
       sess.run(net['input'].assign(img))
       style_loss = 0.
-      for layer, weight in zip(style_layers, style_layer_weights):
+      for layer, weight in zip(self.style_layers, self.style_layer_weights):
         a = sess.run(net[layer])
         x = net[layer]
         a = tf.convert_to_tensor(a)
-        style_loss += style_layer_loss(a, x) * weight
-      style_loss /= float(len(style_layers))
+        style_loss += self.style_layer_loss(a, x) * weight
+      style_loss /= float(len(self.style_layers))
       total_style_loss += (style_loss * img_weight)
     total_style_loss /= float(len(style_imgs))
     return total_style_loss
@@ -317,12 +317,12 @@ class NeuralStyle():
   def sum_content_losses(self,sess, net, content_img):
     sess.run(net['input'].assign(content_img))
     content_loss = 0.
-    for layer, weight in zip(content_layers, content_layer_weights):
+    for layer, weight in zip(self.content_layers, self.content_layer_weights):
       p = sess.run(net[layer])
       x = net[layer]
       p = tf.convert_to_tensor(p)
-      content_loss += content_layer_loss(p, x) * weight
-    content_loss /= float(len(content_layers))
+      content_loss += self.content_layer_loss(p, x) * weight
+    content_loss /= float(len(self.content_layers))
     return content_loss
 
   def temporal_loss(self,x, w, c):
@@ -410,23 +410,23 @@ class NeuralStyle():
     rendering -- where the magic happens
   '''
   def stylize(self,content_img, style_imgs, init_img, frame=None):
-    with tf.device(device_opts), tf.Session() as sess:
+    with tf.device(self.device_opts), tf.Session() as sess:
       # setup network
-      net = build_model(content_img)
+      net = self.build_model(content_img)
       
       # style loss
-      L_style = sum_style_losses(sess, net, style_imgs)
+      L_style = self.sum_style_losses(sess, net, style_imgs)
       
       # content loss
-      L_content = sum_content_losses(sess, net, content_img)
+      L_content = self.sum_content_losses(sess, net, content_img)
       
       # denoising loss
       L_tv = tf.image.total_variation(net['input'])
       
       # loss weights
-      alpha = content_weight
-      beta  = style_weight
-      theta = tv_weight
+      alpha = self.content_weight
+      beta  = self.style_weight
+      theta = self.tv_weight
       
       # total loss
       L_total  = alpha * L_content
@@ -434,18 +434,18 @@ class NeuralStyle():
       L_total += theta * L_tv
       
       # video temporal loss
-      if video and frame > 1:
-        gamma      = arguments.temporal_weight
-        L_temporal = sum_shortterm_temporal_losses(sess, net, frame, init_img)
-        L_total   += gamma * L_temporal
+      #if video and frame > 1:
+      #  gamma      = arguments.temporal_weight
+      #  L_temporal = sum_shortterm_temporal_losses(sess, net, frame, init_img)
+      #  L_total   += gamma * L_temporal
 
       # optimization algorithm
-      optimizer = get_optimizer(L_total)
+      optimizer = self.get_optimizer(L_total)
 
-      if optimizer_type == 'adam':
-        minimize_with_adam(sess, net, optimizer, init_img, L_total)
-      elif optimizer_type == 'lbfgs':
-        minimize_with_lbfgs(sess, net, optimizer, init_img)
+      if self.optimizer_type == 'adam':
+        self.minimize_with_adam(sess, net, optimizer, init_img, L_total)
+      elif self.optimizer_type == 'lbfgs':
+        self.minimize_with_lbfgs(sess, net, optimizer, init_img)
       
       output_img = sess.run(net['input'])
       return output_img
@@ -459,34 +459,34 @@ class NeuralStyle():
       #   write_image_output(output_img, content_img, style_imgs, init_img)
 
   def minimize_with_lbfgs(self,sess, net, optimizer, init_img):
-    if verbose: print('\nMINIMIZING LOSS USING: L-BFGS OPTIMIZER')
+    if self.verbose: print('\nMINIMIZING LOSS USING: L-BFGS OPTIMIZER')
     init_op = tf.global_variables_initializer()
     sess.run(init_op)
     sess.run(net['input'].assign(init_img))
     optimizer.minimize(sess)
 
   def minimize_with_adam(self,sess, net, optimizer, init_img, loss):
-    if verbose: print('\nMINIMIZING LOSS USING: ADAM OPTIMIZER')
+    if self.verbose: print('\nMINIMIZING LOSS USING: ADAM OPTIMIZER')
     train_op = optimizer.minimize(loss)
     init_op = tf.global_variables_initializer()
     sess.run(init_op)
     sess.run(net['input'].assign(init_img))
     iterations = 0
-    while (iterations < max_iterations):
+    while (iterations < self.max_iterations):
       sess.run(train_op)
-      if iterations % print_iterations == 0 and verbose:
+      if iterations % self.print_iterations == 0 and self.verbose:
         curr_loss = loss.eval()
         print("At iterate {}\tf=  {}".format(iterations, curr_loss))
       iterations += 1
 
   def get_optimizer(self,loss):
-    print_iterations = 50 if verbose else 0
-    if optimizer_type == 'lbfgs':
+    self.print_iterations = 50 if self.verbose else 0
+    if self.optimizer_type == 'lbfgs':
       optimizer = tf.contrib.opt.ScipyOptimizerInterface(
         loss, method='L-BFGS-B',
-        options={'maxiter': max_iterations,
-                    'disp': print_iterations})
-    elif optimizer_type == 'adam':
+        options={'maxiter': self.max_iterations,
+                    'disp': self.print_iterations})
+    elif self.optimizer_type == 'adam':
       optimizer = tf.train.AdamOptimizer(learning_rate)
     return optimizer
 
@@ -542,9 +542,9 @@ class NeuralStyle():
   def render_single_image(self,content_img,style_imgs):
     with tf.Graph().as_default():
       print('\n---- RENDERING SINGLE IMAGE ----\n')
-      init_img = get_init_image(init_img_type, content_img, style_imgs)
+      init_img = self.get_init_image(self.init_img_type, content_img, style_imgs)
       tick = time.time()
-      output_img = stylize(content_img, style_imgs, init_img)
+      output_img = self.stylize(content_img, style_imgs, init_img)
       tock = time.time()
       print('Single image elapsed time: {}'.format(tock - tick))
       return output_img
