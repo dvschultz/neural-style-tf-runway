@@ -16,6 +16,7 @@ input_list = {
     'content_image': image,
     'style_image_1': image,
     'original_colors': boolean(default=False),
+    'style_only': boolean(default=False),
     'max_iterations': number(min=50, max=1500, step=50, default=500, description='Iterations'),
     'style_scale': number(min=0.1, max=2.0, step=.05, default=1.0, description='Scale of style images.'),
 }
@@ -28,6 +29,8 @@ def generate(model, args):
     print(args)
 
     model_new = NeuralStyle()
+    if(args['style_only']==True):
+        self.content_weight = 0
     # print('[GENERATE] Ran with content image: "{}"'.format(args['content_image']))
     # print('[GENERATE] Ran with first style image: "{}"'.format(args['style_image_1']))
     # # print('[GENERATE] Ran with second style image: "{}"'.format(args['style_image_2']))
