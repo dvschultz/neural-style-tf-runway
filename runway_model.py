@@ -41,6 +41,7 @@ def generate(model, args):
         args['original_colors'],
         args['max_iterations'],
         args['style_scale'],
+        args['style_only']
         )
     return {
         'image':output_image

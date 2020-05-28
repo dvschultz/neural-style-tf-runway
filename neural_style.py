@@ -19,7 +19,7 @@ class NeuralStyle():
     self.style_imgs_weights = [1.0]
     self.model_weights = 'imagenet-vgg-verydeep-19.mat'
     self.init_img_type = 'content' #['random', 'content', 'style']
-    self.content_weight = 5e0
+    self.content_weight = 0e0
     self.style_weight = 1e4
     self.learning_rate = 1e0
     self.optimizer_type = 'lbfgs' #['lbfgs', 'adam']
@@ -47,7 +47,7 @@ class NeuralStyle():
     self.style_imgs_weights = self.normalize(self.style_imgs_weights)
     
 
-  def run(self,content,style1,og_colors,max_iter,scale):
+  def run(self,content,style1,og_colors,max_iter,scale,style_only):
     
     content_img = content.convert('RGB')
     height,width = content_img.size
@@ -58,6 +58,11 @@ class NeuralStyle():
     self.original_colors = og_colors
     self.max_iterations = max_iter
     
+    print(style_only)
+    if(style_only):
+        self.content_weight=0e0
+        self.init_img_type = 'random'
+    print(self.content_weight)
     print('original colors: ' + str(self.original_colors))
     style_imgs = self.get_style_images(content_img,style1)
     stylized_img = self.render_single_image(content_img,style_imgs)
@@ -499,7 +504,7 @@ class NeuralStyle():
     elif init_type == 'style':
       return style_imgs[0]
     elif init_type == 'random':
-      init_img = get_noise_image(noise_ratio, content_img)
+      init_img = self.get_noise_image(self.noise_ratio, content_img)
       return init_img
     # only for video frames
     elif init_type == 'prev':
@@ -541,6 +546,12 @@ class NeuralStyle():
     dst = cv2.cvtColor(merged, inv_cvt_type).astype(np.float32)
     dst = self.preprocess(dst)
     return dst
+
+  def get_noise_image(self,noise_ratio, content_img):
+    np.random.seed(self.seed)
+    noise_img = np.random.uniform(-20., 20., content_img.shape).astype(np.float32)
+    img = noise_ratio * noise_img + (1.-noise_ratio) * content_img
+    return img
 
   def render_single_image(self,content_img,style_imgs):
     with tf.Graph().as_default():
