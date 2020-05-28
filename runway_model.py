@@ -18,6 +18,7 @@ input_list = {
     'original_colors': boolean(default=False),
     'style_only': boolean(default=False),
     'max_iterations': number(min=50, max=1500, step=50, default=500, description='Iterations'),
+    'content_layer': category(choices=['conv3_1', 'conv3_2', 'conv4_1', 'conv4_2', 'conv4_3', 'conv4_4'], default='conv4_2' description='what VGG19 layer to use for content')
     'style_scale': number(min=0.1, max=2.0, step=.05, default=1.0, description='Scale of style images.'),
 }
 
@@ -29,8 +30,8 @@ def generate(model, args):
     print(args)
 
     model_new = NeuralStyle()
-    if(args['style_only']==True):
-        model_new.content_weight = 0
+    model_new.content_layer = args['content_layer']
+
     # print('[GENERATE] Ran with content image: "{}"'.format(args['content_image']))
     # print('[GENERATE] Ran with first style image: "{}"'.format(args['style_image_1']))
     # # print('[GENERATE] Ran with second style image: "{}"'.format(args['style_image_2']))
