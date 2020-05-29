@@ -1,7 +1,7 @@
 # Import the Runway SDK. Please install it first with
 # `pip install runway-python`.
 import runway
-from runway.data_types import number, text, image,boolean
+from runway.data_types import number, text, image, boolean, category
 from neural_style import NeuralStyle
 
 #setup_options = {
@@ -18,7 +18,7 @@ input_list = {
     'original_colors': boolean(default=False),
     'style_only': boolean(default=False),
     'max_iterations': number(min=50, max=1500, step=50, default=500, description='Iterations'),
-    'content_layer': category(choices=['conv3_1', 'conv3_2', 'conv4_1', 'conv4_2', 'conv4_3', 'conv4_4'], default='conv4_2' description='what VGG19 layer to use for content')
+    'content_layer': category(choices=['conv1_1','conv1_2','conv2_1','conv2_2','conv3_1', 'conv3_2', 'conv4_1', 'conv4_2', 'conv4_3', 'conv4_4','conv5_1','conv5_2'], default='conv4_2', description='what VGG19 layer to use for content'),
     'style_scale': number(min=0.1, max=2.0, step=.05, default=1.0, description='Scale of style images.'),
 }
 
@@ -30,7 +30,7 @@ def generate(model, args):
     print(args)
 
     model_new = NeuralStyle()
-    model_new.content_layer = args['content_layer']
+    model_new.content_layers = [args['content_layer']]
 
     # print('[GENERATE] Ran with content image: "{}"'.format(args['content_image']))
     # print('[GENERATE] Ran with first style image: "{}"'.format(args['style_image_1']))

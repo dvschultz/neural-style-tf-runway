@@ -48,7 +48,7 @@ class NeuralStyle():
     
 
   def run(self,content,style1,og_colors,max_iter,scale,style_only):
-    
+    print(self.content_layers)    
     content_img = content.convert('RGB')
     height,width = content_img.size
     self.max_size = max(height,width)
